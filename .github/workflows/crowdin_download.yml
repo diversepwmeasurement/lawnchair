@@ -1,35 +1,30 @@
+jobs:
+  synchronize-with-crowdin:
+    if: github.repository_owner == 'LawnchairLauncher'
+    name: Download translations from Crowdin
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      env:
+        CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+        GITHUB_TOKEN: ${{ secrets.LAWNCHAIR_BOT_TOKEN }}
+      name: Download translations
+      uses: crowdin/github-action@v2
+      with:
+        base_url: https://lawnchair.crowdin.com
+        create_pull_request: true
+        download_translations: true
+        localization_branch_name: 14-dev-localization
+        upload_sources: false
+        upload_translations: false
 name: Crowdin Download
-
 on:
-  schedule:
-    - cron: '0 0 * * 0'
-  workflow_dispatch:
-
+  repository_dispatch:
+    types: trigger-ga___crowdin_download.yml
 permissions:
   contents: write
   pull-requests: write
-
-jobs:
-
-  synchronize-with-crowdin:
-    name: Download translations from Crowdin
-    if: github.repository_owner == 'LawnchairLauncher'
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Download translations
-      uses: crowdin/github-action@v2
-      with:
-        upload_translations: false
-        upload_sources: false
-        download_translations: true
-        localization_branch_name: 14-dev-localization
-        create_pull_request: true
-        base_url: 'https://lawnchair.crowdin.com'
-      env:
-        GITHUB_TOKEN: ${{ secrets.LAWNCHAIR_BOT_TOKEN }}
-        CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-        CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

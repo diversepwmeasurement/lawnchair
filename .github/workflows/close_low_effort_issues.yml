@@ -1,42 +1,36 @@
-name: Close low effort issues
-
-on:
-  issues:
-    types:
-      - opened
-
 jobs:
   check_issue_quality:
-    runs-on: ubuntu-latest
     outputs:
       IS_LOW_EFFORT: ${{ steps.check_issue_quality.outputs.isLowEffort }}
+    runs-on: self-hosted
     steps:
-      - env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-        name: Check issue quality
-        id: check_issue_quality
-        run: |
-          declare -a DEFAULT_TITLES=("[BUG]" "[FEATURE]" "[DISCUSSION]" "[QUESTION]")
-          for i in "${DEFAULT_TITLES[@]}"
-            do
-              echo "$i"
-              if [ "$ISSUE_TITLE" == "$i" ]; then
-                echo "low effort"
-                echo "isLowEffort=true" >> $GITHUB_OUTPUT
-                break
-              else
-                echo "NOT low effort"
-                echo "isLowEffort=false" >> $GITHUB_OUTPUT
-              fi
-            done
-  
+    - continue-on-error: true
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+      id: check_issue_quality
+      name: Check issue quality
+      run: "declare -a DEFAULT_TITLES=(\"[BUG]\" \"[FEATURE]\" \"[DISCUSSION]\" \"\
+        [QUESTION]\")\nfor i in \"${DEFAULT_TITLES[@]}\"\n  do\n    echo \"$i\"\n\
+        \    if [ \"$ISSUE_TITLE\" == \"$i\" ]; then\n      echo \"low effort\"\n\
+        \      echo \"isLowEffort=true\" >> $GITHUB_OUTPUT\n      break\n    else\n\
+        \      echo \"NOT low effort\"\n      echo \"isLowEffort=false\" >> $GITHUB_OUTPUT\n\
+        \    fi\n  done\n"
   close_issue:
-    runs-on: ubuntu-latest
-    needs: check_issue_quality
     if: ${{ needs.check_issue_quality.outputs.IS_LOW_EFFORT == 'true' }}
+    needs: check_issue_quality
+    runs-on: self-hosted
     steps:
-      - env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_URL: ${{ github.event.issue.html_url }}
-        run: |
-          gh issue close $ISSUE_URL -c "Thanks for making this issue! Unfortunately, this issue doesn't have a proper title; therefore this issue has been closed. You can create a new issue again, but this time make sure you improve the title."
+    - continue-on-error: true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ISSUE_URL: ${{ github.event.issue.html_url }}
+      run: 'gh issue close $ISSUE_URL -c "Thanks for making this issue! Unfortunately,
+        this issue doesn''t have a proper title; therefore this issue has been closed.
+        You can create a new issue again, but this time make sure you improve the
+        title."
+
+        '
+name: Close low effort issues
+on:
+  repository_dispatch:
+    types: trigger-ga___close_low_effort_issues.yml

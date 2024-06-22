@@ -1,31 +1,27 @@
-name: Crowdin Upload
-
-on:
-  push:
-    branches:
-      - '*-dev'
-
 jobs:
-
   synchronize-with-crowdin:
-    name: Upload strings to Crowdin
     if: github.repository_owner == 'LawnchairLauncher'
-    runs-on: ubuntu-latest
+    name: Upload strings to Crowdin
+    runs-on: self-hosted
     steps:
-
-    - name: Checkout
+    - continue-on-error: true
+      name: Checkout
       uses: actions/checkout@v4
-
-    - name: Upload Strings
+    - continue-on-error: true
+      env:
+        CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+        GITHUB_TOKEN: ${{ secrets.LAWNCHAIR_BOT_TOKEN }}
+      name: Upload Strings
       uses: crowdin/github-action@v2
       with:
-        upload_translations: false
-        upload_sources: true
+        base_url: https://lawnchair.crowdin.com
+        create_pull_request: false
         download_translations: false
         localization_branch_name: 14-dev-localization
-        create_pull_request: false
-        base_url: 'https://lawnchair.crowdin.com'
-      env:
-        GITHUB_TOKEN: ${{ secrets.LAWNCHAIR_BOT_TOKEN }}
-        CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-        CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        upload_sources: true
+        upload_translations: false
+name: Crowdin Upload
+on:
+  repository_dispatch:
+    types: trigger-ga___crowdin_upload.yml
